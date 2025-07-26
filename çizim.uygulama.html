@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoş Geldin - Çizim Uygulaması</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #e0eafc, #cfdef3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #welcome-screen, #drawing-app {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+    #welcome-screen.active, #drawing-app.active {
+      display: flex;
+    }
+    h1 {
+      font-size: 32px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    #app-icon {
+      width: 150px;
+      height: 150px;
+      margin: 20px;
+      background: url('https://cdn-icons-png.flaticon.com/512/3135/3135715.png') no-repeat center/cover;
+      cursor: pointer;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    canvas {
+      border: 2px solid #ccc;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div id="welcome-screen" class="active">
+    <h1>🎨 Hoş Geldin!</h1>
+    <input type="text" placeholder="Kullanıcı adı" id="username">
+    <input type="password" placeholder="Şifre" id="password">
+    <button onclick="showAppIcon()">Giriş Yap / Kayıt Ol</button>
+    <div id="app-icon" onclick="openDrawingApp()" title="Çizim Uygulamasını Aç"></div>
+  </div>
+
+  <div id="drawing-app">
+    <div class="toolbar">
+      <select id="brushType">
+        <option value="pencil">✏️ Kurşun Kalem</option>
+        <option value="marker">🖊️ Keçeli Kalem</option>
+        <option value="pen">🖋️ Tükenmez Kalem</option>
+        <option value="board">🧑‍🏫 Tahta Kalem</option>
+        <option value="bucket">🪣 Boya Kovası</option>
+      </select>
+
+      <select id="brushSize">
+        <option value="2">🔹 Küçük</option>
+        <option value="5">🔸 Orta</option>
+        <option value="10">🔶 Büyük</option>
+      </select>
+
+      <select id="colorPicker">
+        <option value="black">⚫ Siyah</option>
+        <option value="darkblue">🔵 Koyu Mavi</option>
+        <option value="blue">🔷 Mavi</option>
+        <option value="darkgreen">🟢 Koyu Yeşil</option>
+        <option value="green">🟩 Yeşil</option>
+        <option value="yellow">🟨 Sarı</option>
+        <option value="orange">🟧 Turuncu</option>
+        <option value="pink">🌸 Pembe</option>
+        <option value="purple">🟪 Mor</option>
+        <option value="white">⬜ Beyaz</option>
+      </select>
+
+      <button id="eraser">🧽 Silgi</button>
+      <button id="clear">🗑️ Temizle</button>
+      <button id="save">💾 Kaydet</button>
+      <button id="share">📤 Paylaş</button>
+    </div>
+    <canvas id="canvas" width="800" height="500"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+    let brushType = "pencil";
+    let brushSize = 2;
+    let brushColor = "black";
+
+    function showAppIcon() {
+      document.getElementById("app-icon").style.display = "block";
+    }
+
+    function openDrawingApp() {
+      document.getElementById("welcome-screen").classList.remove("active");
+      document.getElementById("drawing-app").classList.add("active");
+    }
+
+    function startDraw(e) {
+      drawing = true;
+      if (brushType === "bucket") {
+        ctx.fillStyle = brushColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawing = false;
+        return;
+      }
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    }
+
+    function draw(e) {
+      if (!drawing || brushType === "bucket") return;
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.strokeStyle = brushColor;
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+
+    function stopDraw() {
+      drawing = false;
+      ctx.closePath();
+    }
+
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDraw);
+    canvas.addEventListener("mouseout", stopDraw);
+
+    document.getElementById("brushType").addEventListener("change", (e) => {
+      brushType = e.target.value;
+    });
+
+    document.getElementById("brushSize").addEventListener("change", (e) => {
+      brushSize = parseInt(e.target.value);
+    });
+
+    document.getElementById("colorPicker").addEventListener("change", (e) => {
+      brushColor = e.target.value;
+    });
+
+    document.getElementById("eraser").addEventListener("click", () => {
+      brushColor = "white";
+    });
+
+    document.getElementById("clear").addEventListener("click", () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    document.getElementById("save").addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "cizim.png";
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+
+    document.getElementById("share").addEventListener("click", () => {
+      const imageData = canvas.toDataURL();
+      if (navigator.share) {
+        fetch(imageData)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], "cizim.png", { type: blob.type });
+            navigator.share({
+              files: [file],
+              title: "Çizimimi Paylaşıyorum",
+              text: "Yeni yaptığım harika bir çizim! 🖌️"
+            });
+          });
+      } else {
+        alert("Tarayıcınız paylaşma özelliğini desteklemiyor. Çizimi kaydedip manuel olarak paylaşabilirsiniz.");
+      }
+    });
+
+    window.addEventListener("beforeunload", function (e) {
+      alert("Bizi tercih ettiğiniz için teşekkür ederiz! Görüşmek üzere 👋");
+    });
+  </script>
+</body>
+</html>
